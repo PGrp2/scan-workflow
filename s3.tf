@@ -39,7 +39,22 @@ resource "aws_s3_bucket" "backend" {
       }
     }
   }
+  lifecycle_rule {
+    id      = "example-lifecycle-rule"
+    enabled = true
+
+    expiration {
+      days = 30
+    }
+  }
+  public_access_block_configuration {
+    block_public_acls       = true
+    block_public_policy     = true
+    ignore_public_acls      = true
+    restrict_public_buckets = true
+  }
 }
+
 
 resource "aws_iam_role" "replication_role" {
   name               = "s3-replication-role"
