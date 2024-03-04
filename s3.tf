@@ -19,15 +19,42 @@ resource "aws_s3_bucket" "backend" {
       }
     }
   }
+
+  replication_configuration {
+    role = aws_iam_role.replication_role.arn
+
+    rules {
+      id     = "cross-region-replication"
+      status = "Enabled"
+
+      destination {
+        bucket        = "arn:aws:s3:::replication-s3-group2"
+        storage_class = "STANDARD"
+      }
+
+      source_selection_criteria {
+        sse_kms_encrypted_objects {
+          enabled = true
+        }
+      }
+    }
+  }
 }
 
-resource "aws_s3_bucket_public_access_block" "access_block" {
-  bucket                  = aws_s3_bucket.backend[0].id
-  block_public_acls       = true
-  block_public_policy     = true
-  restrict_public_buckets = true
-  ignore_public_acls      = true
+resource "aws_iam_role" "replication_role" {
+  name               = "s3-replication-role"
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow",
+      Principal = {
+        Service = "s3.amazonaws.com"
+      },
+      Action    = "sts:AssumeRole"
+    }]
+  })
 }
+
 
 #kms key for bucket encryption
 resource "aws_kms_key" "my_key" {
@@ -88,6 +115,7 @@ resource "aws_s3_bucket_public_access_block" "access_backend" {
   restrict_public_buckets = true
   ignore_public_acls      = true
 }
+
 
 resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
   bucket = aws_s3_bucket.backend[0].id
