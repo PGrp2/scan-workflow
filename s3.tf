@@ -133,14 +133,6 @@ resource "aws_s3_bucket_versioning" "versioning_example" {
   }
 }
 
-# Public access block
-resource "aws_s3_bucket_public_access_block" "access_block" {
-  bucket                  = aws_s3_bucket.backend[0].id
-  block_public_acls       = true
-  block_public_policy     = true
-  restrict_public_buckets = true
-  ignore_public_acls      = true
-}
 
 resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
   bucket = aws_s3_bucket.backend[0].id
