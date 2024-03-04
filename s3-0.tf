@@ -1,8 +1,3 @@
-
-============================================================================================
-# New code with Checkov added for deployment:
-
-
 # s3 bucket for terraform
 resource "aws_s3_bucket" "backend" {
   bucket = "prgrp2-${lower(var.env)}-${random_integer.backend.result}"
