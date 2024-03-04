@@ -14,7 +14,7 @@ resource "aws_s3_bucket" "backend" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "068f6659-1722-4ece-9df3-3bb119316e42"
+        kms_master_key_id = var.kms_master_key_id
         sse_algorithm     = "aws:kms"
       }
     }
@@ -28,7 +28,7 @@ resource "aws_s3_bucket" "backend" {
       status = "Enabled"
 
       destination {
-        bucket        = "arn:aws:s3:::replication-s3-group2"
+        bucket        = var.bucket
         storage_class = "STANDARD"
       }
 
