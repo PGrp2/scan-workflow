@@ -11,9 +11,9 @@ variable "create_vpc" {
   default = true
 }
 
-variable "kms_master" {
+variable "kms_master_key_id" {
   type = string
 }
-variable "s3-arn" {
+variable "bucket" {
   type = string
 }
