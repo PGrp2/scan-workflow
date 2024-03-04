@@ -114,6 +114,17 @@ resource "random_integer" "backend" {
   }
 }
 
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.backend[0].id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.example_lambda.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "uploads/"
+    filter_suffix       = ".txt"
+  }
+}
+
 #versioning
 resource "aws_s3_bucket_versioning" "versioning_example" {
   bucket = aws_s3_bucket.backend[0].id
@@ -123,7 +134,7 @@ resource "aws_s3_bucket_versioning" "versioning_example" {
 }
 
 # Public access block
-resource "aws_s3_bucket_public_access_block" "access_backend" {
+resource "aws_s3_bucket_public_access_block" "access_block" {
   bucket                  = aws_s3_bucket.backend[0].id
   block_public_acls       = true
   block_public_policy     = true
@@ -182,9 +193,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
 
 resource "aws_s3_bucket_logging" "example" {
   bucket        = aws_s3_bucket.backend[0].id
-  target_bucket = aws_s3_bucket.backend[0].id
-  target_prefix = "log/"
+  target_bucket = "arn:aws:s3:::replication-s3-group2" 
+  target_prefix = "logs/"
 }
+
 
 resource "aws_s3_bucket_lifecycle_configuration" "pass" {
   bucket = aws_s3_bucket.backend[0].id
