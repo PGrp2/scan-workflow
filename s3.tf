@@ -116,9 +116,18 @@ resource "aws_s3_bucket_public_access_block" "access_backend" {
   ignore_public_acls      = true
 }
 
-
 resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
   bucket = aws_s3_bucket.backend[0].id
+
+  rule {
+    id = "abort_failed_uploads"
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+    filter {}
+    status = "Enabled"
+  }
+
   rule {
     id = "log"
     expiration {
@@ -143,6 +152,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
       storage_class = "GLACIER"
     }
   }
+
   rule {
     id = "tmp"
     filter {
