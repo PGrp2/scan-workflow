@@ -10,6 +10,14 @@ resource "aws_s3_bucket" "backend" {
   versioning {
     enabled = true
   }
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = "068f6659-1722-4ece-9df3-3bb119316e42"  
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
 }
 
 #kms key for bucket encryption
