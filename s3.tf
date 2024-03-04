@@ -1,4 +1,3 @@
-#s3 bucket for terraform backend
 resource "aws_s3_bucket" "backend" {
   count  = var.create_vpc ? 1 : 0
   bucket = "group2-${lower(var.env)}-${random_integer.backend.result}"
@@ -7,17 +6,27 @@ resource "aws_s3_bucket" "backend" {
     Name        = "My backend"
     Environment = "Dev"
   }
+
   versioning {
     enabled = true
   }
+
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "068f6659-1722-4ece-9df3-3bb119316e42"  
+        kms_master_key_id = "068f6659-1722-4ece-9df3-3bb119316e42"
         sse_algorithm     = "aws:kms"
       }
     }
   }
+}
+
+resource "aws_s3_bucket_public_access_block" "access_block" {
+  bucket                  = aws_s3_bucket.backend[0].id
+  block_public_acls       = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+  ignore_public_acls      = true
 }
 
 #kms key for bucket encryption
