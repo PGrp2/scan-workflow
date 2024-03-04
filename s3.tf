@@ -7,6 +7,9 @@ resource "aws_s3_bucket" "backend" {
     Name        = "My backend"
     Environment = "Dev"
   }
+  versioning {
+    enabled = true
+  }
 }
 
 #kms key for bucket encryption
