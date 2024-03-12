@@ -1,19 +1,19 @@
 resource "aws_s3_bucket" "backend" {
   count  = var.create_vpc ? 1 : 0
-  bucket = "group2-${lower(var.env)}-${random_integer.backend.result}"
+  bucket = "${var.bucket_name}-${lower(var.env)}-${random_integer.backend.result}"
 
   tags = {
     Name        = "My backend"
-    Environment = "Dev"
+    Environment = var.env
   }
 
   versioning {
-    enabled = true
+    enabled = var.versioning
   }
 
   lifecycle_rule {
     id      = "example-lifecycle-rule"
-    enabled = true
+    enabled = var.life_cycle
 
     expiration {
       days = 30
@@ -36,6 +36,7 @@ resource "aws_iam_role" "replication_role" {
   })
 }
 
+
 #kms key for bucket encryption
 resource "aws_kms_key" "my_key" {
   description             = "This key is used to encrypt bucket objects"
@@ -50,7 +51,7 @@ resource "aws_kms_key" "my_key" {
       "Sid": "Enable IAM User Permissions",
       "Effect": "Allow",
       "Principal": {
-          "AWS": "arn:aws:iam::657678360112:root"  
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"  
         },
       "Action": "kms:*",
       "Resource": "*"
@@ -146,8 +147,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
 }
 
 resource "aws_s3_bucket_logging" "example" {
-  bucket        = "replication-s3-group2"
-  target_bucket = "replication-s3-group2"
+  bucket        = aws_s3_bucket.backend[0].id
+  target_bucket = var.logging_bucket 
   target_prefix = "logs/"
 }
 
@@ -161,5 +162,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "pass" {
     filter {}
     id     = "log"
     status = "Enabled"
+  }
+}
+
+
+resource "aws_sns_topic" "topic" {
+  name   = "s3-event-notification-topic"
+  kms_master_key_id = "alias/aws/sns"
+  policy = data.aws_iam_policy_document.topic.json
+}
+
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.backend[0].id
+
+  topic {
+    topic_arn     = aws_sns_topic.topic.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_suffix = ".log"
   }
 }
